@@ -59,7 +59,13 @@ interface Apartment {
   };
 }
 
-const EditApartmentPage = ({ params }: { params: { id: string } }) => {
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+const EditApartmentPage = ({ params }: PageProps) => {
   const { translate, language } = useLanguage();
   const { user } = useAuth();
   const router = useRouter();
