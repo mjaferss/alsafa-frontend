@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -79,7 +79,38 @@ interface Apartment {
 }
 
 // صفحة إنشاء طلب صيانة لشقة محددة
-export default function ApartmentMaintenanceRequestPage({ params }: { params: { id: string } }) {
+class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Container>
+          <Alert severity="error">Something went wrong. Please try again later.</Alert>
+        </Container>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function MaintenanceRequestPage({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <ErrorBoundary>
+      <MaintenanceRequestContent params={params} />
+    </ErrorBoundary>
+  );
+}
+
+function MaintenanceRequestContent({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = React.use(params);
   const router = useRouter();
   const { translate, language, isRTL } = useLanguage();
   const { user, checkAuth } = useAuth();
@@ -148,7 +179,7 @@ export default function ApartmentMaintenanceRequestPage({ params }: { params: { 
     };
     
     initPage();
-  }, [router, params.id]);
+  }, [router, resolvedParams.id]);
   
   // جلب بيانات الشقة
   const fetchApartment = async () => {
@@ -159,7 +190,7 @@ export default function ApartmentMaintenanceRequestPage({ params }: { params: { 
         return;
       }
 
-      const response = await axios.get(`http://localhost:5000/api/apartments/${params.id}`, {
+      const response = await axios.get(`http://localhost:5000/api/apartments/${resolvedParams.id}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -460,7 +491,7 @@ export default function ApartmentMaintenanceRequestPage({ params }: { params: { 
             variant="outlined"
             color="primary"
             startIcon={<ArrowBack />}
-            onClick={() => router.push(`/dashboard/apartments/view/${params.id}`)}
+            onClick={() => router.push(`/dashboard/apartments/view/${resolvedParams.id}`)}
           >
             {translate('back') || 'رجوع'}
           </Button>
@@ -831,7 +862,7 @@ export default function ApartmentMaintenanceRequestPage({ params }: { params: { 
               <Button
                 variant="outlined"
                 color="inherit"
-                onClick={() => router.push(`/dashboard/apartments/view/${params.id}`)}
+                onClick={() => router.push(`/dashboard/apartments/view/${resolvedParams.id}`)}
                 sx={{ 
                   mr: 2, 
                   px: 4,

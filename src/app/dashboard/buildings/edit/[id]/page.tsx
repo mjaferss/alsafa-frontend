@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
   Box,
   Typography,
@@ -35,14 +35,14 @@ interface Building {
 }
 
 // صفحة تعديل المبنى
-const EditBuildingPage = () => {
+const EditBuildingPage = ({ params }: { params: Promise<{ id: string }> }) => {
   // استخدام سياق اللغة
   const { t, language, isRTL } = useLanguage();
   
   // استخدام توجيه Next.js والحصول على معرف المبنى من المسار
   const router = useRouter();
-  const params = useParams();
-  const buildingId = params?.id as string;
+  const resolvedParams = React.use(params);
+  const buildingId = resolvedParams.id;
   
   // حالة النموذج
   const [formData, setFormData] = useState<Building>({

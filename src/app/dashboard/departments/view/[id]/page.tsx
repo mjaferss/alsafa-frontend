@@ -27,9 +27,10 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
 // صفحة عرض تفاصيل القسم
-const ViewDepartmentPage = ({ params }: { params: { id: string } }) => {
+const ViewDepartmentPage = ({ params }: { params: Promise<{ id: string }> }) => {
   // تخزين معرف القسم من المعلمات
-  const [departmentId, setDepartmentId] = useState<string>('');
+  const resolvedParams = React.use(params);
+  const [departmentId, setDepartmentId] = useState<string>(resolvedParams.id);
   
   // استخدام سياق اللغة
   const { t, language, isRTL } = useLanguage();
@@ -54,10 +55,7 @@ const ViewDepartmentPage = ({ params }: { params: { id: string } }) => {
   // التحقق من تحميل المكون وتعيين معرف القسم
   useEffect(() => {
     setMounted(true);
-    if (params && params.id) {
-      setDepartmentId(params.id);
-    }
-  }, [params]);
+  }, []);
   
   // التحقق من المستخدم وصلاحياته وجلب بيانات القسم
   useEffect(() => {

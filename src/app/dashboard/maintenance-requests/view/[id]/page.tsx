@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
   Box, Container, Typography, Paper, Grid, Divider, Chip, Button,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -76,8 +76,9 @@ interface MaintenanceRequest {
 }
 
 // صفحة عرض طلب الصيانة
-export default function ViewMaintenanceRequest() {
-  const { id } = useParams();
+export default function ViewMaintenanceRequest({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = React.use(params);
+  const id = resolvedParams.id;
   const router = useRouter();
   const { language, translate } = useLanguage();
   const { user, token } = useAuth();

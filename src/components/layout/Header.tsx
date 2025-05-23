@@ -42,7 +42,14 @@ export default function Header() {
         <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
           {/* الشعار */}
           <Link href="/" passHref>
-            <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer', gap: 1 }}>
+              <Image
+                src="/assets/images/logo.jpeg"
+                alt="صفا"
+                width={40}
+                height={40}
+                style={{ borderRadius: '50%' }}
+              />
               <Typography variant="h5" component="div" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                 صفا
               </Typography>
@@ -65,7 +72,10 @@ export default function Header() {
                   startIcon={<Dashboard />}
                   sx={{ 
                     bgcolor: 'primary.main',
-                    '&:hover': { bgcolor: 'primary.dark' }
+                    '&:hover': { bgcolor: 'primary.dark' },
+                    '& .MuiButton-startIcon': {
+                      marginInlineEnd: '8px'
+                    }
                   }}
                 >
                   {t('dashboard')}
@@ -77,7 +87,10 @@ export default function Header() {
                   startIcon={<Logout />}
                   sx={{ 
                     borderColor: 'error.main',
-                    '&:hover': { bgcolor: 'error.light', borderColor: 'error.dark' }
+                    '&:hover': { bgcolor: 'error.light', borderColor: 'error.dark' },
+                    '& .MuiButton-startIcon': {
+                      marginInlineEnd: '8px'
+                    }
                   }}
                 >
                   {isRTL ? 'تسجيل الخروج' : 'Logout'}

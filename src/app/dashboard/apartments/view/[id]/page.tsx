@@ -61,7 +61,8 @@ interface Apartment {
   } | null;
 }
 
-const ViewApartmentPage = ({ params }: { params: { id: string } }) => {
+const ViewApartmentPage = ({ params }: { params: Promise<{ id: string }> }) => {
+  const resolvedParams = React.use(params);
   const { translate, language, isRTL } = useLanguage();
   const { user } = useAuth();
   const router = useRouter();
@@ -118,7 +119,7 @@ const ViewApartmentPage = ({ params }: { params: { id: string } }) => {
       // الحصول على التوكن من localStorage
       const token = localStorage.getItem('token');
       
-      console.log('[VIEW] Fetching apartment data with ID:', params.id);
+      console.log('[VIEW] Fetching apartment data with ID:', resolvedParams.id);
       console.log('[VIEW] Using token:', token ? 'Token exists' : 'No token');
       
       if (!token) {
@@ -134,7 +135,7 @@ const ViewApartmentPage = ({ params }: { params: { id: string } }) => {
       }
       
       // استخدام رابط API ثابت للاختبار
-      const apiUrl = `http://localhost:5000/api/apartments/${params.id}`;
+      const apiUrl = `http://localhost:5000/api/apartments/${resolvedParams.id}`;
       console.log('[VIEW] API URL:', apiUrl);
       
       const response = await axios.get(apiUrl, {
@@ -180,33 +181,8 @@ const ViewApartmentPage = ({ params }: { params: { id: string } }) => {
 
   // جلب البيانات عند تحميل الصفحة
   useEffect(() => {
-    // التحقق من أننا في جانب العميل
-    if (typeof window !== 'undefined' && params.id) {
-      console.log('[VIEW] Page loaded, checking authentication...');
-      
-      // التحقق من وجود التوكن قبل جلب البيانات
-      const token = localStorage.getItem('token');
-      const savedUser = localStorage.getItem('user');
-      
-      console.log('[VIEW] Token exists:', !!token);
-      console.log('[VIEW] User data exists:', !!savedUser);
-      
-      if (!token) {
-        console.error('[VIEW] No authentication token found on page load');
-        setError(translate('pleaseLogin'));
-        toast.error(translate('pleaseLogin'));
-        
-        // إعادة توجيه المستخدم إلى صفحة تسجيل الدخول
-        setTimeout(() => {
-          router.push('/login');
-        }, 1500);
-        return;
-      }
-      
-      // جلب بيانات الشقة
-      fetchApartment();
-    }
-  }, [params.id, router, translate]);
+    fetchApartment();
+  }, [resolvedParams.id]);
 
   // حذف الشقة
   const handleDeleteApartment = async () => {
@@ -219,7 +195,7 @@ const ViewApartmentPage = ({ params }: { params: { id: string } }) => {
       }
       
       // استخدام رابط API ثابت للاختبار
-      const apiUrl = `http://localhost:5000/api/apartments/${params.id}`;
+      const apiUrl = `http://localhost:5000/api/apartments/${resolvedParams.id}`;
       
       const response = await axios.delete(apiUrl, {
         headers: {
@@ -267,10 +243,10 @@ const ViewApartmentPage = ({ params }: { params: { id: string } }) => {
         return;
       }
       
-      console.log(`[TOGGLE] Toggling apartment ${params.id}, current status: ${apartment.isActive}`);
+      console.log(`[TOGGLE] Toggling apartment ${resolvedParams.id}, current status: ${apartment.isActive}`);
       
       // المسار الصحيح لتفعيل/تعطيل الشقة بناءً على ملف apartmentController.js
-      const apiUrl = `http://localhost:5000/api/apartments/${params.id}/toggle-active`;
+      const apiUrl = `http://localhost:5000/api/apartments/${resolvedParams.id}/toggle-active`;
       console.log(`[TOGGLE] Using API URL: ${apiUrl}`);
       
       // استخدام طريقة PUT كما هو محدد في ملف apartmentController.js
@@ -396,7 +372,7 @@ const ViewApartmentPage = ({ params }: { params: { id: string } }) => {
                     variant="contained"
                     color="primary"
                     startIcon={<Edit />}
-                    onClick={() => router.push(`/dashboard/apartments/edit/${params.id}`)}
+                    onClick={() => router.push(`/dashboard/apartments/edit/${resolvedParams.id}`)}
                   >
                     {translate('edit')}
                   </Button>
@@ -416,7 +392,7 @@ const ViewApartmentPage = ({ params }: { params: { id: string } }) => {
                     variant="contained"
                     color="secondary"
                     startIcon={<Build />}
-                    onClick={() => router.push(`/dashboard/apartments/maintenance-request/${params.id}`)}
+                    onClick={() => router.push(`/dashboard/apartments/maintenance-request/${resolvedParams.id}`)}
                   >
                     {translate('createMaintenanceRequest') || 'إنشاء طلب صيانة'}
                   </Button>
@@ -565,15 +541,19 @@ const ViewApartmentPage = ({ params }: { params: { id: string } }) => {
           </>
         ) : null}
         
-        {/* مربع حوار حذف الشقة */}
+        {/* مربع حوار تأكيد الحذف */}
         <Dialog
           open={deleteDialogOpen}
           onClose={() => setDeleteDialogOpen(false)}
+          aria-labelledby="delete-dialog-title"
+          aria-describedby="delete-dialog-description"
         >
-          <DialogTitle>{translate('confirmDelete')}</DialogTitle>
+          <DialogTitle id="delete-dialog-title">
+            {translate('confirmDelete')}
+          </DialogTitle>
           <DialogContent>
-            <DialogContentText>
-              {translate('confirmDeleteApartmentMessage')}
+            <DialogContentText id="delete-dialog-description">
+              {translate('deleteApartmentConfirmation')}
             </DialogContentText>
           </DialogContent>
           <DialogActions>

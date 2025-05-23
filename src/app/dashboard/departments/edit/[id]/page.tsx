@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import {
@@ -21,10 +21,34 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
-// صفحة تعديل قسم
-const EditDepartmentPage = ({ params }: { params: { id: string } }) => {
+// مكون ErrorBoundary للتعامل مع الأخطاء
+class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Box sx={{ p: 3 }}>
+          <Alert severity="error">حدث خطأ ما. يرجى المحاولة مرة أخرى لاحقاً.</Alert>
+        </Box>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// المكون الرئيسي لتعديل القسم
+const EditDepartmentContent = ({ params }: { params: Promise<{ id: string }> }) => {
+  const resolvedParams = React.use(params);
   // تخزين معرف القسم من المعلمات
-  const [departmentId, setDepartmentId] = useState<string>('');
+  const [departmentId] = useState<string>(resolvedParams.id);
   // استخدام سياق اللغة
   const { t, isRTL } = useLanguage();
   
@@ -75,10 +99,7 @@ const EditDepartmentPage = ({ params }: { params: { id: string } }) => {
   // التحقق من تحميل المكون وتعيين معرف القسم
   useEffect(() => {
     setMounted(true);
-    if (params && params.id) {
-      setDepartmentId(params.id);
-    }
-  }, [params]);
+  }, []);
   
   // التحقق من المستخدم وصلاحياته وجلب بيانات القسم
   useEffect(() => {
@@ -361,4 +382,11 @@ const EditDepartmentPage = ({ params }: { params: { id: string } }) => {
   );
 };
 
-export default EditDepartmentPage;
+// تصدير المكون الرئيسي مع ErrorBoundary
+export default function EditDepartmentPage({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <ErrorBoundary>
+      <EditDepartmentContent params={params} />
+    </ErrorBoundary>
+  );
+}

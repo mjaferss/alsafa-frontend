@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component } from 'react';
 import {
+  Alert,
   Box,
   Button,
   Container,
@@ -18,6 +19,7 @@ import {
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { Save as SaveIcon } from '@mui/icons-material';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -25,21 +27,42 @@ import PageHeader from '@/components/PageHeader';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
-// تعريف نوع القسم
+// مكون ErrorBoundary للتعامل مع الأخطاء
+class ErrorBoundary extends Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Box sx={{ p: 3 }}>
+          <Alert severity="error">حدث خطأ ما. يرجى المحاولة مرة أخرى لاحقاً.</Alert>
+        </Box>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// تعريف الأنواع
 interface Department {
   _id: string;
   name: string;
   code: string;
 }
 
-// تعريف نوع المبنى
 interface Building {
   _id: string;
   name: string;
   code: string;
 }
 
-// تعريف نوع الشقة
 interface Apartment {
   _id: string;
   number: string;
@@ -60,13 +83,13 @@ interface Apartment {
 }
 
 interface PageProps {
-  params: {
-    id: string;
-  };
+  params: Promise<{ id: string }>;
 }
 
-const EditApartmentPage = ({ params }: PageProps) => {
-  const { translate, language } = useLanguage();
+// المكون الرئيسي لتعديل الشقة
+function EditApartmentContent({ params }: PageProps) {
+  const resolvedParams = React.use(params);
+  const { language, translate } = useLanguage();
   const { user } = useAuth();
   const router = useRouter();
 
@@ -160,7 +183,7 @@ const EditApartmentPage = ({ params }: PageProps) => {
       }
       
       // استخدام رابط API ثابت للاختبار
-      const apiUrl = `http://localhost:5000/api/apartments/${params.id}`;
+      const apiUrl = `http://localhost:5000/api/apartments/${resolvedParams.id}`;
       
       const response = await axios.get(apiUrl, {
         headers: {
@@ -278,7 +301,7 @@ const EditApartmentPage = ({ params }: PageProps) => {
       }
       
       // استخدام رابط API ثابت للاختبار
-      const apiUrl = `http://localhost:5000/api/apartments/${params.id}`;
+      const apiUrl = `http://localhost:5000/api/apartments/${resolvedParams.id}`;
       
       const response = await axios.put(
         apiUrl,
@@ -325,7 +348,7 @@ const EditApartmentPage = ({ params }: PageProps) => {
     };
     
     fetchData();
-  }, [params.id]);
+  }, [resolvedParams.id]);
 
   // التحقق من صلاحيات المستخدم
   if (user && user.role !== 'مدير' && user.role !== 'مشرف') {
@@ -504,13 +527,29 @@ const EditApartmentPage = ({ params }: PageProps) => {
 
                 {/* زر الحفظ */}
                 <Grid sx={{ gridColumn: 'span 12' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 3, mt: 2 }}>
+                    <Button
+                      variant="outlined"
+                      color="inherit"
+                      onClick={() => router.push('/dashboard/apartments')}
+                      disabled={submitting}
+                      sx={{ minWidth: 120 }}
+                    >
+                      {translate('cancel')}
+                    </Button>
                     <Button
                       variant="contained"
                       color="primary"
                       type="submit"
                       disabled={submitting}
-                      sx={{ minWidth: 150 }}
+                      startIcon={<SaveIcon />}
+                      sx={{ 
+                        minWidth: 140,
+                        px: 3,
+                        '& .MuiButton-startIcon': {
+                          marginInlineEnd: '16px'
+                        }
+                      }}
                     >
                       {submitting ? translate('saving') : translate('saveApartment')}
                     </Button>
@@ -524,6 +563,13 @@ const EditApartmentPage = ({ params }: PageProps) => {
       <Footer />
     </Box>
   );
-};
+}
 
-export default EditApartmentPage;
+// تصدير المكون الرئيسي مع ErrorBoundary
+export default function EditApartmentPage({ params }: PageProps) {
+  return (
+    <ErrorBoundary>
+      <EditApartmentContent params={params} />
+    </ErrorBoundary>
+  );
+}
