@@ -563,7 +563,7 @@ export default function UsersPage() {
                           <Tooltip title={t('editButton')}>
                             <IconButton 
                               color="secondary" 
-                              onClick={() => router.push(`/dashboard/users/edit?id=${user._id}`)}
+                              onClick={() => router.push(`/dashboard/users/edit/${user._id}`)}
                               size={windowWidth < 400 ? "small" : "medium"}
                             >
                               <EditIcon fontSize={windowWidth < 400 ? "small" : "medium"} />
